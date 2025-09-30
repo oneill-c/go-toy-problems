@@ -79,6 +79,8 @@ go test ./...
 
 Planned follow-ups (step-by-step complexity increase):
 
+### 1. Top Poster
+
 1. **Retries + backoff**
 2. **Pagination (fetch until completion)**
 3. **Table-driven tests**
