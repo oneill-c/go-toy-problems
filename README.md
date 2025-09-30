@@ -81,8 +81,7 @@ Planned follow-ups (step-by-step complexity increase):
 
 1. **Retries + backoff**
 2. **Pagination (fetch until completion)**
-3. **Table-driven tests (Jest style in Go)**
-4. **Rewrite problems in TypeScript**
+3. **Table-driven tests**
 
 ---
 

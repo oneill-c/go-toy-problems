@@ -89,5 +89,5 @@ func main() {
 			topPoster = u
 		}
 	}
-	fmt.Printf("Top poster is ID=%s Name=%s\n", topPoster.ID, topPoster.Name)
+	fmt.Printf("Top poster: %s with %d posts\n", topPoster.Name, counts[topPoster.ID])
 }
