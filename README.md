@@ -20,6 +20,10 @@ go-toy-problems/
 ├── top-poster/
 │   ├── main.go
 │   └── main_test.go
+├── bfs/
+│   └── main.go
+├── dfs/
+│   └── main.go
 └── README.md
 ```
 
@@ -50,12 +54,56 @@ Expected output:
 Top poster: Bob with 2 posts
 ```
 
+### 2. BFS (Breadth-First Search)
+
+- **Task**:  
+  Implement BFS traversal of a binary tree and print node values in level order.
+- **Concepts covered**:
+  - Queues in Go (using slices)
+  - Iterative traversal
+  - Exploring trees level by level
+
+Run:
+
+```bash
+cd bfs
+go run main.go
+```
+
+Expected output (example tree):
+
+```
+1 2 3 4 5
+```
+
+### 3. DFS (Depth-First Search)
+
+- **Task**:  
+  Implement DFS traversal of a binary tree and print node values in depth-first order.
+- **Concepts covered**:
+  - Recursion in Go
+  - Preorder traversal
+  - Exploring trees branch by branch
+
+Run:
+
+```bash
+cd dfs
+go run main.go
+```
+
+Expected output (example tree):
+
+```
+1 2 4 5 3
+```
+
 ---
 
 ## 🛠️ Requirements
 
 - [Go 1.21+](https://go.dev/dl/)
-- [chi router](https://github.com/go-chi/chi)
+- [chi router](https://github.com/go-chi/chi) (only needed for HTTP-based problems)
 
 Install chi:
 
@@ -79,11 +127,16 @@ go test ./...
 
 Planned follow-ups (step-by-step complexity increase):
 
-### 1. Top Poster
+### Top Poster
 
 1. **Retries + backoff**
 2. **Pagination (fetch until completion)**
 3. **Table-driven tests**
+
+### BFS / DFS
+
+- Variants with iterative + recursive approaches
+- Unit tests for traversal correctness
 
 ---
 
@@ -95,3 +148,4 @@ This repo exists as a lightweight playground for practicing Go problem-solving s
 - Data structures
 - Error handling
 - Testing best practices
+- Common algorithms (BFS, DFS)
