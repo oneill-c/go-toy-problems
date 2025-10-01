@@ -24,6 +24,8 @@ go-toy-problems/
 │   ├── main.go
 │   └── testdata/
 │       └── users.csv
+├── flatten-json/
+│   └── main.go
 ├── bfs/
 │   └── main.go
 ├── dfs/
@@ -57,17 +59,8 @@ Top poster: Bob with 2 posts
 
 ### 2) CSV → Struct
 
-- **Task**: Read a CSV file and parse each row into a strongly typed `User` struct:
-  ```go
-  type User struct {
-      ID     int
-      Email  string
-      Active bool
-      DOB    time.Time
-      Score  float64
-  }
-  ```
-- **Notes**: Minimal parser using `encoding/csv`, manual field conversions (`strconv`, `time.Parse`).
+- **Task**: Read a CSV file and parse each row into a strongly typed `User` struct.
+- **Concepts**: CSV parsing, type conversions (`strconv`, `time.Parse`), building slices of structs.
 
 Run:
 
@@ -76,42 +69,61 @@ cd csv-to-struct
 go run main.go
 ```
 
-Default input: `testdata/users.csv`
-
-**Example output (truncated):**
-
-```
-CSV parsing complete.
-Read N records
-
-{ID:1 Email:alice@example.com Active:true DOB:1990-12-01 00:00:00 +0000 UTC Score:98.5}
-...
-```
-
 **Roadmap (CSV → Struct):**
 
-1. **Refactor for testability**
-   - Extract a pure function `ParseUsers(r io.Reader) ([]User, error)`
-   - Make date layout a parameter (e.g., `ParseUsers(r, layout string)`)
-2. **Table-driven tests**
-   - Happy path, bad int/bool/float, bad date, empty file, missing column
-   - Golden-file test using `testdata/users.csv`
-3. **Error handling**
-   - Collect row-level errors with line numbers; continue on non-fatal rows
-   - Return an aggregate error type (e.g., `type RowError struct { Line int; Err error }`)
-4. **CSV options**
-   - Support custom delimiter, comment char, trimming space, `FieldsPerRecord`
-5. **I/O ergonomics**
-   - Support reading from `os.Stdin` and a `-file` flag
-   - Add `-date-layout` flag (default `2006-01-02`)
-6. **Performance & safety**
-   - Benchmarks with `testing.B`
-   - Preallocate slice when `r.FieldsPerRecord` is known
-7. **(Stretch)** Generic/reflect-based mapper or struct tags for column mapping
+1. Refactor into `ParseUsers(io.Reader)` for testability
+2. Table-driven tests for conversions and error handling
+3. Row-level error collection
+4. Configurable CSV options (delimiter, layout)
 
 ---
 
-### 3) BFS (Breadth-First Search)
+### 3) Flatten JSON
+
+- **Task**: Flatten an arbitrarily nested JSON object/array into a flat `map[string]string` with joined keys.
+- **Concepts**: recursion, type switching, handling `map[string]any` and `[]any`, string conversion.
+
+Run:
+
+```bash
+cd flatten-json
+go run main.go
+```
+
+**Example input:**
+
+```json
+{
+  "user": {
+    "id": 42,
+    "name": "jim",
+    "tags": ["eng", "guitar"],
+    "prefs": { "darkMode": true }
+  }
+}
+```
+
+**Example output (separator="."):**
+
+```
+user.id=42
+user.name=jim
+user.tags.0=eng
+user.tags.1=guitar
+user.prefs.darkMode=true
+```
+
+**Roadmap (Flatten JSON):**
+
+1. Add unit tests with multiple input cases
+2. Support custom key joiner (dot, underscore, etc.)
+3. Handle null values distinctly (`null` vs empty string)
+4. Optionally return `map[string]any` for type safety, with string conversion helper
+5. Benchmarks for large JSON payloads
+
+---
+
+### 4) BFS (Breadth-First Search)
 
 - **Task**: Traverse a binary tree in level order and print node values.
 - **Concepts**: queue via slice, iterative traversal.
@@ -123,7 +135,7 @@ cd bfs
 go run main.go
 ```
 
-Expected (example tree):
+Expected:
 
 ```
 1 2 3 4 5
@@ -131,7 +143,7 @@ Expected (example tree):
 
 ---
 
-### 4) DFS (Depth-First Search)
+### 5) DFS (Depth-First Search)
 
 - **Task**: Traverse a binary tree in preorder and print node values.
 - **Concepts**: recursion, call stack depth-first traversal.
@@ -143,7 +155,7 @@ cd dfs
 go run main.go
 ```
 
-Expected (example tree):
+Expected:
 
 ```
 1 2 4 5 3
@@ -176,9 +188,10 @@ go test ./...
 
 ## 🎯 Roadmap (repo-wide)
 
-- **Top Poster**: Retries + backoff → Pagination (until completion) → Table-driven tests
-- **CSV → Struct**: Refactor for `io.Reader` → Table-driven tests → Row-level error reporting → CSV options
-- **BFS/DFS**: Add tests and iterative/recursive variants
+- **Top Poster**: Retries + backoff → Pagination → Table-driven tests
+- **CSV → Struct**: Refactor to `io.Reader` → Tests → Row-level errors → Options
+- **Flatten JSON**: Add tests → Configurable joiner → Null handling → Type-safe map
+- **BFS/DFS**: Add table-driven tests + iterative/recursive variants
 
 ---
 
