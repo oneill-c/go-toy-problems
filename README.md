@@ -26,6 +26,9 @@ go-toy-problems/
 │       └── users.csv
 ├── flatten-json/
 │   └── main.go
+├── concurrency/
+│   └── worker-pool-waitgroup/
+│       └── main.go
 ├── bfs/
 │   └── main.go
 ├── dfs/
@@ -123,7 +126,37 @@ user.prefs.darkMode=true
 
 ---
 
-### 4) BFS (Breadth-First Search)
+### 4) Concurrency — Worker Pool (WaitGroup)
+
+- **Path**: `concurrency/worker-pool-waitgroup/main.go`
+- **Task**: Process a finite batch (e.g., 10k blockchain transactions) in parallel using a fixed number of workers; emit only valid transactions.
+- **Validation rules** (sample):
+  - Symbol in whitelist: `BTC`, `ETH`, `SOL`
+  - `price > 0`
+  - `volume > 0`
+  - `21000 <= gasEstimate <= 1_000_000`
+  - non-empty signature
+- **Concepts**: bounded concurrency, producer/consumer channels, `sync.WaitGroup`, fan-out/fan-in, backpressure via buffered channels.
+
+Run:
+
+```bash
+cd concurrency/worker-pool-waitgroup
+go run main.go
+```
+
+**Roadmap (Worker Pool):**
+
+1. Make `workerCount` configurable via flag/env
+2. Collect and return the valid transactions slice (currently only counts)
+3. Add context support for cancellation & deadlines
+4. Add table-driven tests (happy path, all invalid, mixed)
+5. Add error channel & metrics (per-rule failures)
+6. (Stretch) Replace `WaitGroup` with `errgroup.Group` and context
+
+---
+
+### 5) BFS (Breadth-First Search)
 
 - **Task**: Traverse a binary tree in level order and print node values.
 - **Concepts**: queue via slice, iterative traversal.
@@ -143,7 +176,7 @@ Expected:
 
 ---
 
-### 5) DFS (Depth-First Search)
+### 6) DFS (Depth-First Search)
 
 - **Task**: Traverse a binary tree in preorder and print node values.
 - **Concepts**: recursion, call stack depth-first traversal.
@@ -191,6 +224,7 @@ go test ./...
 - **Top Poster**: Retries + backoff → Pagination → Table-driven tests
 - **CSV → Struct**: Refactor to `io.Reader` → Tests → Row-level errors → Options
 - **Flatten JSON**: Add tests → Configurable joiner → Null handling → Type-safe map
+- **Concurrency/Worker Pool**: Flags → Context → Tests → Metrics → `errgroup` variant
 - **BFS/DFS**: Add table-driven tests + iterative/recursive variants
 
 ---
@@ -203,4 +237,5 @@ This repo is a lightweight playground for practicing Go problem-solving skills, 
 - Data structures & algorithms
 - Error handling
 - Testing best practices
+- Concurrency patterns
 - Parsing and data munging
