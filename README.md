@@ -32,6 +32,8 @@ go-toy-problems/
 ├── networking/
 │   └── hmac-with-retry/
 │       └── main.go
+├── in-memory-users-db/
+│   └── main.go
 ├── bfs/
 │   └── main.go
 ├── dfs/
@@ -49,19 +51,6 @@ Mock two endpoints (`/users` and `/posts`), fetch both, and return the user with
 
 **Concepts:** chi mux routing, `httptest` mock server, JSON decode, simple aggregation.
 
-Run:
-
-```bash
-cd top-poster
-go run main.go
-```
-
-Expected output:
-
-```
-Top poster: Bob with 2 posts
-```
-
 ---
 
 ### 2) CSV → Struct
@@ -70,20 +59,6 @@ Read a CSV file and parse each row into a strongly typed `User` struct.
 
 **Concepts:** CSV parsing, type conversions (`strconv`, `time.Parse`), building slices of structs.
 
-Run:
-
-```bash
-cd csv-to-struct
-go run main.go
-```
-
-**Roadmap:**
-
-1. Refactor into `ParseUsers(io.Reader)` for testability
-2. Table-driven tests for conversions and error handling
-3. Row-level error collection
-4. Configurable CSV options (delimiter, layout)
-
 ---
 
 ### 3) Flatten JSON
@@ -91,31 +66,6 @@ go run main.go
 Flatten an arbitrarily nested JSON object or array into a flat `map[string]string` with joined keys.
 
 **Concepts:** recursion, type switching, handling `map[string]any` and `[]any`, string conversion.
-
-Run:
-
-```bash
-cd flatten-json
-go run main.go
-```
-
-**Example output (separator="."):**
-
-```
-user.id=42
-user.name=jim
-user.tags.0=eng
-user.tags.1=guitar
-user.prefs.darkMode=true
-```
-
-**Roadmap:**
-
-1. Add unit tests with multiple input cases
-2. Support custom key joiner (dot, underscore, etc.)
-3. Handle null values distinctly (`null` vs empty string)
-4. Optionally return `map[string]any` for type safety
-5. Benchmarks for large JSON payloads
 
 ---
 
@@ -126,112 +76,51 @@ Process a finite batch (e.g., 10k blockchain transactions) in parallel using a f
 
 **Concepts:** bounded concurrency, producer/consumer channels, `sync.WaitGroup`, fan-out/fan-in, backpressure via buffered channels.
 
-Run:
-
-```bash
-cd concurrency/worker-pool-waitgroup
-go run main.go
-```
-
-**Roadmap:**
-
-1. Make `workerCount` configurable
-2. Collect and return valid transactions
-3. Add context cancellation & deadlines
-4. Add table-driven tests (happy path, all invalid, mixed)
-5. Add error metrics
-6. Replace `WaitGroup` with `errgroup.Group`
-
 ---
 
 ### 5) HMAC-Verified JSON Fetch with Retry and Backoff
 
 **Path:** `networking/hmac-with-retry/main.go`  
-Build a resilient HTTP client that:
+Build a resilient HTTP client that fetches a JSON payload, verifies authenticity with **HMAC-SHA256**, parses it into a typed struct, and retries failed requests with **exponential backoff and jitter**.
 
-1. Fetches a JSON payload from an HTTP endpoint.
-2. Verifies authenticity using **HMAC-SHA256** and a pre-shared secret.
-3. Parses verified JSON into a typed struct.
-4. Retries failed requests with **exponential backoff + jitter** (up to 5 retries, 10s timeout).
-
-**Example payload:**
-
-```json
-{
-  "data": {
-    "event_id": "abc123",
-    "timestamp": "2025-10-06T15:04:05Z",
-    "user_id": "user_456",
-    "action": "login"
-  },
-  "signature": "abc123deadbeef..."
-}
-```
-
-**Concepts:**
-
-- Secure message verification via HMAC-SHA256
-- JSON decoding into typed structs
-- Timeout and retry with backoff + jitter
-- Error handling for 4xx/5xx and 429 (rate limiting)
-
-Run:
-
-```bash
-cd networking/hmac-with-retry
-go run main.go
-```
-
-**Roadmap:**
-
-1. Use env/flag for secret key
-2. Add context cancellation & deadlines
-3. Add test server for signature validation
-4. Add structured logging and metrics
-5. Extend with signed `POST` request support
-6. Use `errgroup.Group` for concurrent fetch/verify
+**Concepts:** secure message verification, JSON parsing, retry with jitter, timeout handling, rate-limit logic.
 
 ---
 
-### 6) BFS (Breadth-First Search)
+### 6) In-Memory Users Database
+
+**Path:** `in-memory-users-db/main.go`  
+Implement an in-memory database to manage user records. It should support basic operations for importing and retrieving users.
+
+**Requirements:**
+
+1. `import_users` — accepts an input request and inserts provided users into the database.
+2. `get_users` — returns all user records.
+3. `get_user_by_id` — returns a single record matching the provided ID.
+
+Handle conflicting or duplicate records gracefully — for example, multiple entries with the same email but different phone numbers should trigger a validation error.
+
+**Concepts:** in-memory data structures, deduplication, validation, simple data access patterns.
+
+**Roadmap (In-Memory Users DB):**
+
+1. Implement error handling for duplicate/conflicting users.
+2. Add table-driven tests for imports and lookups.
+3. Introduce optional persistence to disk (JSON file).
+4. Add filtering/sorting (by email, name, etc.).
+5. (Stretch) Add a REST or gRPC layer to expose the API.
+
+---
+
+### 7) BFS (Breadth-First Search)
 
 Traverse a binary tree in level order and print node values.
 
-**Concepts:** queue via slice, iterative traversal.
-
-Run:
-
-```bash
-cd bfs
-go run main.go
-```
-
-Expected output:
-
-```
-1 2 3 4 5
-```
-
 ---
 
-### 7) DFS (Depth-First Search)
+### 8) DFS (Depth-First Search)
 
 Traverse a binary tree in preorder and print node values.
-
-**Concepts:** recursion, call stack depth-first traversal.
-
-Run:
-
-```bash
-cd dfs
-go run main.go
-```
-
-Expected output:
-
-```
-1 2 4 5 3
-```
 
 ---
 
@@ -239,12 +128,6 @@ Expected output:
 
 - [Go 1.21+](https://go.dev/dl/)
 - [chi router](https://github.com/go-chi/chi) (only needed for HTTP-based problems)
-
-Install chi:
-
-```bash
-go get github.com/go-chi/chi/v5
-```
 
 ---
 
@@ -265,6 +148,7 @@ go test ./...
 - **Flatten JSON** → Tests + Configurable joiner + Null handling
 - **Worker Pool** → Context + Tests + Metrics
 - **HMAC with Retry** → Context, Tests, Logging, Metrics
+- **In-Memory DB** → Conflict detection, Persistence, Filtering
 - **BFS/DFS** → Table-driven tests + Iterative variants
 
 ---
