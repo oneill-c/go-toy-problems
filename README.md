@@ -40,6 +40,8 @@ go-toy-problems/
 │   └── main.go
 ├── dfs/
 │   └── main.go
+├── dedupe-api/
+│   └── main.go
 └── README.md
 ```
 
@@ -104,88 +106,103 @@ Handle conflicting or duplicate records gracefully — for example, multiple ent
 
 **Concepts:** in-memory data structures, deduplication, validation, simple data access patterns.
 
-**Roadmap (In-Memory Users DB):**
+---
 
-1. Implement error handling for duplicate/conflicting users.
-2. Add table-driven tests for imports and lookups.
-3. Introduce optional persistence to disk (JSON file).
-4. Add filtering/sorting (by email, name, etc.).
-5. (Stretch) Add a REST or gRPC layer to expose the API.
+### 7) Customer Order Deduplication API
+
+**Path:** `dedupe-api/main.go`
+
+Expose a REST endpoint **POST /dedupe** that merges two systems’ order lists into a single clean, deduplicated JSON array.
+
+**Requirements:**
+
+1. Normalize input data
+   - `email`: trim + lowercase
+   - `customer_name`: trim + collapse internal spaces
+2. Validate emails using a simple regex (`.+@.+\..+`); skip invalid ones.
+3. Deduplicate by normalized email
+   - Keep record with highest `amount`
+   - Tie-break on equal `amount` using lexicographically smaller `id`
+4. Sort alphabetically by `customer_name` (case-insensitive).
+5. Return the cleaned list as JSON.
+
+**Concepts:** basic HTTP handler, input validation, normalization, deduplication logic, JSON encoding.
+
+**Example Request:**
+
+```json
+POST /dedupe
+{
+  "systemA": [
+    {"id":"a1","customer_name":"Ada Lovelace","email":"ada@Example.com","amount":49.99},
+    {"id":"a2","customer_name":"Alan Turing","email":"alan.turing@org","amount":29.50}
+  ],
+  "systemB": [
+    {"id":"b1","customer_name":"ALAN  TURING","email":"  Alan.Turing@ORG ","amount":34.00},
+    {"id":"b2","customer_name":"Grace Hopper","email":"grace.hopper@navy.mil","amount":99.99}
+  ]
+}
+```
+
+**Example Response:**
+
+```json
+[
+  {
+    "id": "a1",
+    "customer_name": "Ada Lovelace",
+    "email": "ada@example.com",
+    "amount": 49.99
+  },
+  {
+    "id": "b1",
+    "customer_name": "Alan Turing",
+    "email": "alan.turing@org",
+    "amount": 34.0
+  },
+  {
+    "id": "b2",
+    "customer_name": "Grace Hopper",
+    "email": "grace.hopper@navy.mil",
+    "amount": 99.99
+  }
+]
+```
+
+**Concepts covered:**
+
+- Input normalization and validation
+- Deduplication logic using maps
+- JSON encoding/decoding
+- Case-insensitive sorting
 
 ---
 
-### 7) BFS (Breadth-First Search)
+### 8) BFS (Breadth-First Search)
 
 Traverse a binary tree in level order and print node values.
 
 ---
 
-### 8) DFS (Depth-First Search)
+### 9) DFS (Depth-First Search)
 
 Traverse a binary tree in preorder and print node values.
 
 ---
 
-### 9) Paginated API Fetch with Retry, Backoff, and Checkpointing
+### 10) Paginated API Fetch with Retry, Backoff, and Checkpointing
 
 **Path:** `networking/sync-pagination/main.go`  
 Implement a Go program that fetches event data from a paginated HTTP API, handles transient errors with retries, and supports resuming from a saved checkpoint between runs.
 
-**Requirements:**
-
-- Fetch all pages until `next_cursor` is `null`
-- Count total and unique events
-- Save a `.checkpoint` file to resume progress
-- Handle retries with exponential backoff and jitter
-- Abort after 3 failed attempts or unrecoverable errors
-
-**Example payload:**
-
-```json
-{
-  "data": [
-    {
-      "id": "evt_123",
-      "wallet_id": "wallet_abc",
-      "kind": "deposit",
-      "ts": "2025-10-06T15:04:05Z"
-    }
-  ],
-  "next_cursor": "cursor_456"
-}
-```
-
-**Example output:**
-
-```json
-{
-  "processed": 1532,
-  "unique_events": 1500,
-  "last_cursor": "cursor_456"
-}
-```
-
-**Concepts covered:**
-
-- Pagination and cursor-based iteration
-- Retry with exponential backoff and jitter
-- Checkpointing and atomic file writes
-- Idempotent design for resumable processes
-
-**Roadmap (Sync Pagination):**
-
-1. Add context-based cancellation for graceful shutdown.
-2. Support concurrent page fetching (while preserving order).
-3. Add testable interfaces (`fetchPage`, `saveCheckpointAtomic`).
-4. Mock HTTP responses for integration testing.
-5. Add structured logging (`log/slog`).
+**Concepts:** pagination, retry logic, checkpointing, context cancellation.
 
 ---
 
 ## 🛠️ Requirements
 
 - [Go 1.21+](https://go.dev/dl/)
-- [chi router](https://github.com/go-chi/chi) (only needed for HTTP-based problems)
+- [chi router](https://github.com/go-chi/chi) (optional, for HTTP problems)
 
 ---
 
@@ -201,14 +218,11 @@ go test ./...
 
 ## 🎯 Roadmap (repo-wide)
 
-- **Top Poster** → Retries + Pagination + Tests
-- **CSV → Struct** → Reader refactor + Tests + Error reporting
-- **Flatten JSON** → Tests + Configurable joiner + Null handling
-- **Worker Pool** → Context + Tests + Metrics
-- **HMAC with Retry** → Context, Tests, Logging, Metrics
-- **In-Memory DB** → Conflict detection, Persistence, Filtering
-- **Sync Pagination** → Context, Concurrency, Logging, Testing
-- **BFS/DFS** → Table-driven tests + Iterative variants
+- Add tests for new API-based problems
+- Introduce context cancellation patterns
+- Add error logging with `log/slog`
+- Explore gRPC and WebSocket examples
+- Add integration test harness for HTTP handlers
 
 ---
 
