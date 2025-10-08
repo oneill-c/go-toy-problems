@@ -30,7 +30,9 @@ go-toy-problems/
 │   └── worker-pool-waitgroup/
 │       └── main.go
 ├── networking/
-│   └── hmac-with-retry/
+│   ├── hmac-with-retry/
+│   │   └── main.go
+│   └── sync-pagination/
 │       └── main.go
 ├── in-memory-users-db/
 │   └── main.go
@@ -124,6 +126,62 @@ Traverse a binary tree in preorder and print node values.
 
 ---
 
+### 9) Paginated API Fetch with Retry, Backoff, and Checkpointing
+
+**Path:** `networking/sync-pagination/main.go`  
+Implement a Go program that fetches event data from a paginated HTTP API, handles transient errors with retries, and supports resuming from a saved checkpoint between runs.
+
+**Requirements:**
+
+- Fetch all pages until `next_cursor` is `null`
+- Count total and unique events
+- Save a `.checkpoint` file to resume progress
+- Handle retries with exponential backoff and jitter
+- Abort after 3 failed attempts or unrecoverable errors
+
+**Example payload:**
+
+```json
+{
+  "data": [
+    {
+      "id": "evt_123",
+      "wallet_id": "wallet_abc",
+      "kind": "deposit",
+      "ts": "2025-10-06T15:04:05Z"
+    }
+  ],
+  "next_cursor": "cursor_456"
+}
+```
+
+**Example output:**
+
+```json
+{
+  "processed": 1532,
+  "unique_events": 1500,
+  "last_cursor": "cursor_456"
+}
+```
+
+**Concepts covered:**
+
+- Pagination and cursor-based iteration
+- Retry with exponential backoff and jitter
+- Checkpointing and atomic file writes
+- Idempotent design for resumable processes
+
+**Roadmap (Sync Pagination):**
+
+1. Add context-based cancellation for graceful shutdown.
+2. Support concurrent page fetching (while preserving order).
+3. Add testable interfaces (`fetchPage`, `saveCheckpointAtomic`).
+4. Mock HTTP responses for integration testing.
+5. Add structured logging (`log/slog`).
+
+---
+
 ## 🛠️ Requirements
 
 - [Go 1.21+](https://go.dev/dl/)
@@ -149,6 +207,7 @@ go test ./...
 - **Worker Pool** → Context + Tests + Metrics
 - **HMAC with Retry** → Context, Tests, Logging, Metrics
 - **In-Memory DB** → Conflict detection, Persistence, Filtering
+- **Sync Pagination** → Context, Concurrency, Logging, Testing
 - **BFS/DFS** → Table-driven tests + Iterative variants
 
 ---
