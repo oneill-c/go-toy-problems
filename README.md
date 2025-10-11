@@ -42,6 +42,8 @@ go-toy-problems/
 │   └── main.go
 ├── dedupe-api/
 │   └── main.go
+├── time-and-retries/
+│   └── main.go
 └── README.md
 ```
 
@@ -128,54 +130,6 @@ Expose a REST endpoint **POST /dedupe** that merges two systems’ order lists i
 
 **Concepts:** basic HTTP handler, input validation, normalization, deduplication logic, JSON encoding.
 
-**Example Request:**
-
-```json
-POST /dedupe
-{
-  "systemA": [
-    {"id":"a1","customer_name":"Ada Lovelace","email":"ada@Example.com","amount":49.99},
-    {"id":"a2","customer_name":"Alan Turing","email":"alan.turing@org","amount":29.50}
-  ],
-  "systemB": [
-    {"id":"b1","customer_name":"ALAN  TURING","email":"  Alan.Turing@ORG ","amount":34.00},
-    {"id":"b2","customer_name":"Grace Hopper","email":"grace.hopper@navy.mil","amount":99.99}
-  ]
-}
-```
-
-**Example Response:**
-
-```json
-[
-  {
-    "id": "a1",
-    "customer_name": "Ada Lovelace",
-    "email": "ada@example.com",
-    "amount": 49.99
-  },
-  {
-    "id": "b1",
-    "customer_name": "Alan Turing",
-    "email": "alan.turing@org",
-    "amount": 34.0
-  },
-  {
-    "id": "b2",
-    "customer_name": "Grace Hopper",
-    "email": "grace.hopper@navy.mil",
-    "amount": 99.99
-  }
-]
-```
-
-**Concepts covered:**
-
-- Input normalization and validation
-- Deduplication logic using maps
-- JSON encoding/decoding
-- Case-insensitive sorting
-
 ---
 
 ### 8) BFS (Breadth-First Search)
@@ -196,6 +150,16 @@ Traverse a binary tree in preorder and print node values.
 Implement a Go program that fetches event data from a paginated HTTP API, handles transient errors with retries, and supports resuming from a saved checkpoint between runs.
 
 **Concepts:** pagination, retry logic, checkpointing, context cancellation.
+
+---
+
+### 11) Time & Retries
+
+**Path:** `time-and-retries/main.go`  
+Implements an exponential backoff retry mechanism with ±25% jitter.  
+Each retry doubles the delay up to a maximum cap, then applies random jitter to prevent synchronized retry storms.
+
+**Concepts:** `time.Duration`, exponential backoff, random jitter, rate control, and retry safety limits.
 
 ---
 
