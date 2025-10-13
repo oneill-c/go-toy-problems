@@ -27,7 +27,9 @@ go-toy-problems/
 ├── flatten-json/
 │   └── main.go
 ├── concurrency/
-│   └── worker-pool-waitgroup/
+│   ├── worker-pool-waitgroup/
+│   │   └── main.go
+│   └── context-aware-worker-pool/
 │       └── main.go
 ├── networking/
 │   ├── hmac-with-retry/
@@ -88,7 +90,33 @@ Process a finite batch (e.g., 10k blockchain transactions) in parallel using a f
 
 ---
 
-### 5) HMAC-Verified JSON Fetch with Retry and Backoff
+### 5) Concurrency — Context-Aware Worker Pool
+
+**Path:** `concurrency/context-aware-worker-pool/main.go`  
+Implements a worker pool that gracefully stops processing jobs when a **context timeout or cancellation** occurs. Each worker processes jobs concurrently until the context is canceled, at which point unfinished work is abandoned and the system shuts down cleanly.
+
+**Features:**
+
+- Uses `context.WithTimeout` to limit runtime duration
+- Demonstrates graceful shutdown and cancellation propagation
+- Safely collects results using a `JobStore` protected by a mutex
+- Adjustable dials for global timeout and job processing delay
+
+**Concepts:** context cancellation, timeout propagation, safe concurrent writes, worker synchronization.
+
+**Example output:**
+
+```
+worker 2 processed 3
+worker 0 processed 1
+worker 1 processed 2
+context canceled: context deadline exceeded
+collected 6 results before cancel: [2 4 6 8 10 12]
+```
+
+---
+
+### 6) HMAC-Verified JSON Fetch with Retry and Backoff
 
 **Path:** `networking/hmac-with-retry/main.go`  
 Build a resilient HTTP client that fetches a JSON payload, verifies authenticity with **HMAC-SHA256**, parses it into a typed struct, and retries failed requests with **exponential backoff and jitter**.
@@ -97,16 +125,16 @@ Build a resilient HTTP client that fetches a JSON payload, verifies authenticity
 
 ---
 
-### 6) In-Memory Users Database
+### 7) In-Memory Users Database
 
 **Path:** `in-memory-users-db/main.go`  
 Implement an in-memory database to manage user records. It should support basic operations for importing and retrieving users.
 
 **Requirements:**
 
-1. `import_users` — accepts an input request and inserts provided users into the database.
-2. `get_users` — returns all user records.
-3. `get_user_by_id` — returns a single record matching the provided ID.
+- `import_users` — accepts an input request and inserts provided users into the database.
+- `get_users` — returns all user records.
+- `get_user_by_id` — returns a single record matching the provided ID.
 
 Handle conflicting or duplicate records gracefully — for example, multiple entries with the same email but different phone numbers should trigger a validation error.
 
@@ -114,41 +142,28 @@ Handle conflicting or duplicate records gracefully — for example, multiple ent
 
 ---
 
-### 7) Customer Order Deduplication API
+### 8) Customer Order Deduplication API
 
-**Path:** `dedupe-api/main.go`
-
+**Path:** `dedupe-api/main.go`  
 Expose a REST endpoint **POST /dedupe** that merges two systems’ order lists into a single clean, deduplicated JSON array.
 
-**Requirements:**
-
-1. Normalize input data
-   - `email`: trim + lowercase
-   - `customer_name`: trim + collapse internal spaces
-2. Validate emails using a simple regex (`.+@.+\..+`); skip invalid ones.
-3. Deduplicate by normalized email
-   - Keep record with highest `amount`
-   - Tie-break on equal `amount` using lexicographically smaller `id`
-4. Sort alphabetically by `customer_name` (case-insensitive).
-5. Return the cleaned list as JSON.
-
-**Concepts:** basic HTTP handler, input validation, normalization, deduplication logic, JSON encoding.
+**Concepts:** input normalization, deduplication logic, JSON encoding, simple REST handlers.
 
 ---
 
-### 8) BFS (Breadth-First Search)
+### 9) BFS (Breadth-First Search)
 
 Traverse a binary tree in level order and print node values.
 
 ---
 
-### 9) DFS (Depth-First Search)
+### 10) DFS (Depth-First Search)
 
 Traverse a binary tree in preorder and print node values.
 
 ---
 
-### 10) Paginated API Fetch with Retry, Backoff, and Checkpointing
+### 11) Paginated API Fetch with Retry, Backoff, and Checkpointing
 
 **Path:** `networking/sync-pagination/main.go`  
 Implement a Go program that fetches event data from a paginated HTTP API, handles transient errors with retries, and supports resuming from a saved checkpoint between runs.
@@ -157,7 +172,7 @@ Implement a Go program that fetches event data from a paginated HTTP API, handle
 
 ---
 
-### 11) Time & Retries
+### 12) Time & Retries
 
 **Path:** `time-and-retries/main.go`  
 Implements an exponential backoff retry mechanism with ±25% jitter.  
@@ -167,7 +182,7 @@ Each retry doubles the delay up to a maximum cap, then applies random jitter to 
 
 ---
 
-### 12) Time & Retries with Context
+### 13) Time & Retries with Context
 
 **Path:** `time-and-retries-with-context/main.go`  
 Implements an exponential backoff retry mechanism with ±25% jitter **and context cancellation**.  
@@ -178,25 +193,12 @@ Demonstrates the use of `context.Context` for graceful cancellation and timeouts
 
 ---
 
-### 13) String Manipulation — Email/Phone Normalization & Validation
+### 14) String Manipulation — Email/Phone Normalization & Validation
 
 **Path:** `string-manipulation/main.go`  
 Normalize and validate user contact info, then emit cleaned users and summary stats.
 
-**Requirements:**
-
-- **Normalize**
-  - Email: `trim` + `lowercase`
-  - Phone: extract digits only (drop punctuation/spaces); if 11 digits starting with `1`, drop the leading `1`
-- **Validate**
-  - Email valid if it contains `@` and a `.` after `@`
-  - Phone valid if exactly **10 digits** after normalization
-- **Output**
-  - Keep only users with **both** valid email and phone
-  - Print a summary: total processed, valid count, skipped count, invalid email count, invalid phone count
-  - Print normalized `email` and 10-digit `phone` for valid users
-
-**Concepts:** string normalization, light validation (no heavy regex), simple stats aggregation, reporting.
+**Concepts:** string normalization, validation, light regex, stats aggregation, reporting.
 
 ---
 
@@ -219,10 +221,10 @@ go test ./...
 
 ## 🎯 Roadmap (repo-wide)
 
-- Add tests for new API-based problems
-- Introduce context cancellation patterns
-- Add error logging with `log/slog`
-- Explore gRPC and WebSocket examples
+- Add tests for new concurrency problems
+- Expand retry logic with metrics
+- Introduce structured logging (`log/slog`)
+- Explore gRPC, WebSocket, and streaming examples
 - Add integration test harness for HTTP handlers
 
 ---
@@ -235,7 +237,7 @@ A lightweight Go playground for improving problem-solving, preparing for intervi
 - Concurrency patterns
 - Data structures & algorithms
 - Error handling
+- Context & cancellation patterns
 - Testing best practices
 - Secure API interactions
 - Parsing and data munging
-- Practical string handling & validation
