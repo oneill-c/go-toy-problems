@@ -7,11 +7,11 @@ Each problem is designed to be easy to run, extend, and learn from.
 
 ## 📂 Structure
 
-- Each problem lives in its own folder.
-- Every folder contains:
-  - `main.go` → minimal runnable solution
-  - (optional) `*_test.go` → table-driven tests
-  - A short description in comments
+Each problem lives in its own folder and contains:
+
+- `main.go` → minimal runnable solution
+- (optional) `*_test.go` → table-driven tests
+- A short description in comments
 
 Example:
 
@@ -43,6 +43,8 @@ go-toy-problems/
 ├── dedupe-api/
 │   └── main.go
 ├── time-and-retries/
+│   └── main.go
+├── time-and-retries-with-ctx/
 │   └── main.go
 └── README.md
 ```
@@ -160,6 +162,17 @@ Implements an exponential backoff retry mechanism with ±25% jitter.
 Each retry doubles the delay up to a maximum cap, then applies random jitter to prevent synchronized retry storms.
 
 **Concepts:** `time.Duration`, exponential backoff, random jitter, rate control, and retry safety limits.
+
+---
+
+### 12) Time & Retries with Context
+
+**Path:** `time-and-retries-with-ctx/main.go`  
+Implements an exponential backoff retry mechanism with ±25% jitter **and context cancellation**.  
+Each retry doubles the delay up to a maximum cap, then applies random jitter to prevent synchronized retry storms.  
+Demonstrates the use of `context.Context` for graceful cancellation and timeouts during retries.
+
+**Concepts:** `context.Context`, exponential backoff, random jitter, retry loops, graceful timeout handling.
 
 ---
 
