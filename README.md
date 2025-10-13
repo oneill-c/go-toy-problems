@@ -44,7 +44,9 @@ go-toy-problems/
 │   └── main.go
 ├── time-and-retries/
 │   └── main.go
-├── time-and-retries-with-ctx/
+├── time-and-retries-with-context/
+│   └── main.go
+├── string-manipulation/
 │   └── main.go
 └── README.md
 ```
@@ -167,12 +169,34 @@ Each retry doubles the delay up to a maximum cap, then applies random jitter to 
 
 ### 12) Time & Retries with Context
 
-**Path:** `time-and-retries-with-ctx/main.go`  
+**Path:** `time-and-retries-with-context/main.go`  
 Implements an exponential backoff retry mechanism with ±25% jitter **and context cancellation**.  
 Each retry doubles the delay up to a maximum cap, then applies random jitter to prevent synchronized retry storms.  
 Demonstrates the use of `context.Context` for graceful cancellation and timeouts during retries.
 
 **Concepts:** `context.Context`, exponential backoff, random jitter, retry loops, graceful timeout handling.
+
+---
+
+### 13) String Manipulation — Email/Phone Normalization & Validation
+
+**Path:** `string-manipulation/main.go`  
+Normalize and validate user contact info, then emit cleaned users and summary stats.
+
+**Requirements:**
+
+- **Normalize**
+  - Email: `trim` + `lowercase`
+  - Phone: extract digits only (drop punctuation/spaces); if 11 digits starting with `1`, drop the leading `1`
+- **Validate**
+  - Email valid if it contains `@` and a `.` after `@`
+  - Phone valid if exactly **10 digits** after normalization
+- **Output**
+  - Keep only users with **both** valid email and phone
+  - Print a summary: total processed, valid count, skipped count, invalid email count, invalid phone count
+  - Print normalized `email` and 10-digit `phone` for valid users
+
+**Concepts:** string normalization, light validation (no heavy regex), simple stats aggregation, reporting.
 
 ---
 
@@ -214,3 +238,4 @@ A lightweight Go playground for improving problem-solving, preparing for intervi
 - Testing best practices
 - Secure API interactions
 - Parsing and data munging
+- Practical string handling & validation
