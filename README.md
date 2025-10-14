@@ -29,7 +29,9 @@ go-toy-problems/
 ├── concurrency/
 │   ├── worker-pool-waitgroup/
 │   │   └── main.go
-│   └── context-aware-worker-pool/
+│   ├── context-aware-worker-pool/
+│   │   └── main.go
+│   └── context-aware-token-bucket/
 │       └── main.go
 ├── networking/
 │   ├── hmac-with-retry/
@@ -95,28 +97,38 @@ Process a finite batch (e.g., 10k blockchain transactions) in parallel using a f
 **Path:** `concurrency/context-aware-worker-pool/main.go`  
 Implements a worker pool that gracefully stops processing jobs when a **context timeout or cancellation** occurs. Each worker processes jobs concurrently until the context is canceled, at which point unfinished work is abandoned and the system shuts down cleanly.
 
+**Concepts:** context cancellation, timeout propagation, safe concurrent writes, worker synchronization.
+
+---
+
+### 6) Concurrency — Context-Aware Token Bucket
+
+**Path:** `concurrency/context-aware-token-bucket/main.go`  
+Implements a **rate limiter** combined with a **context-aware worker pool**.  
+Workers process jobs only when a token is available, simulating controlled throughput (e.g., API rate limits).
+
 **Features:**
 
-- Uses `context.WithTimeout` to limit runtime duration
-- Demonstrates graceful shutdown and cancellation propagation
-- Safely collects results using a `JobStore` protected by a mutex
-- Adjustable dials for global timeout and job processing delay
+- Token bucket refills `N` times per second (`tokensPerSecond`)
+- Burst capacity defines the maximum tokens that can accumulate
+- Integrated with context timeout for graceful shutdown
+- Adjustable dials for bucket size, job count, and latency simulation
 
-**Concepts:** context cancellation, timeout propagation, safe concurrent writes, worker synchronization.
+**Concepts:** token bucket algorithm, rate limiting, `context.Context`, worker coordination, graceful cancellation.
 
 **Example output:**
 
 ```
-worker 2 processed 3
-worker 0 processed 1
 worker 1 processed 2
+worker 3 processed 5
+worker 0 processed 1
 context canceled: context deadline exceeded
-collected 6 results before cancel: [2 4 6 8 10 12]
+collected 8 results before cancel: [2 4 6 8 10 12 14 16]
 ```
 
 ---
 
-### 6) HMAC-Verified JSON Fetch with Retry and Backoff
+### 7) HMAC-Verified JSON Fetch with Retry and Backoff
 
 **Path:** `networking/hmac-with-retry/main.go`  
 Build a resilient HTTP client that fetches a JSON payload, verifies authenticity with **HMAC-SHA256**, parses it into a typed struct, and retries failed requests with **exponential backoff and jitter**.
@@ -125,24 +137,16 @@ Build a resilient HTTP client that fetches a JSON payload, verifies authenticity
 
 ---
 
-### 7) In-Memory Users Database
+### 8) In-Memory Users Database
 
 **Path:** `in-memory-users-db/main.go`  
 Implement an in-memory database to manage user records. It should support basic operations for importing and retrieving users.
-
-**Requirements:**
-
-- `import_users` — accepts an input request and inserts provided users into the database.
-- `get_users` — returns all user records.
-- `get_user_by_id` — returns a single record matching the provided ID.
-
-Handle conflicting or duplicate records gracefully — for example, multiple entries with the same email but different phone numbers should trigger a validation error.
 
 **Concepts:** in-memory data structures, deduplication, validation, simple data access patterns.
 
 ---
 
-### 8) Customer Order Deduplication API
+### 9) Customer Order Deduplication API
 
 **Path:** `dedupe-api/main.go`  
 Expose a REST endpoint **POST /dedupe** that merges two systems’ order lists into a single clean, deduplicated JSON array.
@@ -151,49 +155,46 @@ Expose a REST endpoint **POST /dedupe** that merges two systems’ order lists i
 
 ---
 
-### 9) BFS (Breadth-First Search)
+### 10) BFS (Breadth-First Search)
 
 Traverse a binary tree in level order and print node values.
 
 ---
 
-### 10) DFS (Depth-First Search)
+### 11) DFS (Depth-First Search)
 
 Traverse a binary tree in preorder and print node values.
 
 ---
 
-### 11) Paginated API Fetch with Retry, Backoff, and Checkpointing
+### 12) Paginated API Fetch with Retry, Backoff, and Checkpointing
 
 **Path:** `networking/sync-pagination/main.go`  
-Implement a Go program that fetches event data from a paginated HTTP API, handles transient errors with retries, and supports resuming from a saved checkpoint between runs.
+Fetch paginated event data from an API, retry transient failures, and resume from a saved checkpoint.
 
-**Concepts:** pagination, retry logic, checkpointing, context cancellation.
+**Concepts:** pagination, checkpointing, backoff, resumable syncs.
 
 ---
 
-### 12) Time & Retries
+### 13) Time & Retries
 
 **Path:** `time-and-retries/main.go`  
-Implements an exponential backoff retry mechanism with ±25% jitter.  
-Each retry doubles the delay up to a maximum cap, then applies random jitter to prevent synchronized retry storms.
+Exponential backoff retry mechanism with ±25% jitter.
 
-**Concepts:** `time.Duration`, exponential backoff, random jitter, rate control, and retry safety limits.
+**Concepts:** `time.Duration`, backoff, random jitter, retry limits.
 
 ---
 
-### 13) Time & Retries with Context
+### 14) Time & Retries with Context
 
 **Path:** `time-and-retries-with-context/main.go`  
-Implements an exponential backoff retry mechanism with ±25% jitter **and context cancellation**.  
-Each retry doubles the delay up to a maximum cap, then applies random jitter to prevent synchronized retry storms.  
-Demonstrates the use of `context.Context` for graceful cancellation and timeouts during retries.
+Same as above, but **context-aware** for graceful timeout/cancel handling.
 
-**Concepts:** `context.Context`, exponential backoff, random jitter, retry loops, graceful timeout handling.
+**Concepts:** context cancellation, backoff, timing control.
 
 ---
 
-### 14) String Manipulation — Email/Phone Normalization & Validation
+### 15) String Manipulation — Email/Phone Normalization & Validation
 
 **Path:** `string-manipulation/main.go`  
 Normalize and validate user contact info, then emit cleaned users and summary stats.
@@ -221,11 +222,11 @@ go test ./...
 
 ## 🎯 Roadmap (repo-wide)
 
-- Add tests for new concurrency problems
-- Expand retry logic with metrics
+- Add more concurrency control examples (token buckets, semaphores, rate limiters)
 - Introduce structured logging (`log/slog`)
-- Explore gRPC, WebSocket, and streaming examples
-- Add integration test harness for HTTP handlers
+- Expand retry logic with metrics and tracing
+- Explore gRPC, WebSocket, and streaming patterns
+- Add integration tests for HTTP and concurrency cases
 
 ---
 
@@ -235,9 +236,9 @@ A lightweight Go playground for improving problem-solving, preparing for intervi
 
 - HTTP + JSON
 - Concurrency patterns
+- Rate limiting and retry logic
 - Data structures & algorithms
-- Error handling
+- Error handling and resilience
 - Context & cancellation patterns
-- Testing best practices
 - Secure API interactions
-- Parsing and data munging
+- Data validation and normalization
