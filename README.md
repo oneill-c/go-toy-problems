@@ -36,7 +36,9 @@ go-toy-problems/
 ├── networking/
 │   ├── hmac-with-retry/
 │   │   └── main.go
-│   └── sync-pagination/
+│   ├── sync-pagination/
+│   │   └── main.go
+│   └── pagination-and-retries/
 │       └── main.go
 ├── in-memory-users-db/
 │   └── main.go
@@ -107,28 +109,39 @@ Implements a worker pool that gracefully stops processing jobs when a **context 
 Implements a **rate limiter** combined with a **context-aware worker pool**.  
 Workers process jobs only when a token is available, simulating controlled throughput (e.g., API rate limits).
 
+**Concepts:** token bucket algorithm, rate limiting, `context.Context`, worker coordination, graceful cancellation.
+
+---
+
+### 7) Networking — Pagination and Retries
+
+**Path:** `networking/pagination-and-retries/main.go`  
+Simulates fetching paginated data from an HTTP API with transient failures using **exponential backoff with jitter** and **context-aware retries**.  
+Each request retries automatically on transient (429, 5xx, or timeout) responses and stops after exceeding the global timeout.
+
 **Features:**
 
-- Token bucket refills `N` times per second (`tokensPerSecond`)
-- Burst capacity defines the maximum tokens that can accumulate
-- Integrated with context timeout for graceful shutdown
-- Adjustable dials for bucket size, job count, and latency simulation
+- Mock HTTP server using `httptest`
+- Context-based retry logic with jittered exponential backoff
+- Graceful exit on global timeout or non-retryable client errors
+- Logs fetched item counts per page and total accumulated items
 
-**Concepts:** token bucket algorithm, rate limiting, `context.Context`, worker coordination, graceful cancellation.
+**Concepts:** context cancellation, retry with jitter, pagination, transient failure handling, robust HTTP fetching.
 
 **Example output:**
 
 ```
-worker 1 processed 2
-worker 3 processed 5
-worker 0 processed 1
-context canceled: context deadline exceeded
-collected 8 results before cancel: [2 4 6 8 10 12 14 16]
+attempt=1 error=temporary server error sleeping=150ms
+fetched 3 items (total=3), next="/api/items?page=2"
+attempt=2 error=temporary server error sleeping=300ms
+fetched 2 items (total=5), next="/api/items?page=3"
+fetched 1 items (total=6), next=""
+done: 6 items
 ```
 
 ---
 
-### 7) HMAC-Verified JSON Fetch with Retry and Backoff
+### 8) HMAC-Verified JSON Fetch with Retry and Backoff
 
 **Path:** `networking/hmac-with-retry/main.go`  
 Build a resilient HTTP client that fetches a JSON payload, verifies authenticity with **HMAC-SHA256**, parses it into a typed struct, and retries failed requests with **exponential backoff and jitter**.
@@ -137,7 +150,7 @@ Build a resilient HTTP client that fetches a JSON payload, verifies authenticity
 
 ---
 
-### 8) In-Memory Users Database
+### 9) In-Memory Users Database
 
 **Path:** `in-memory-users-db/main.go`  
 Implement an in-memory database to manage user records. It should support basic operations for importing and retrieving users.
@@ -146,7 +159,7 @@ Implement an in-memory database to manage user records. It should support basic 
 
 ---
 
-### 9) Customer Order Deduplication API
+### 10) Customer Order Deduplication API
 
 **Path:** `dedupe-api/main.go`  
 Expose a REST endpoint **POST /dedupe** that merges two systems’ order lists into a single clean, deduplicated JSON array.
@@ -155,19 +168,19 @@ Expose a REST endpoint **POST /dedupe** that merges two systems’ order lists i
 
 ---
 
-### 10) BFS (Breadth-First Search)
+### 11) BFS (Breadth-First Search)
 
 Traverse a binary tree in level order and print node values.
 
 ---
 
-### 11) DFS (Depth-First Search)
+### 12) DFS (Depth-First Search)
 
 Traverse a binary tree in preorder and print node values.
 
 ---
 
-### 12) Paginated API Fetch with Retry, Backoff, and Checkpointing
+### 13) Paginated API Fetch with Retry, Backoff, and Checkpointing
 
 **Path:** `networking/sync-pagination/main.go`  
 Fetch paginated event data from an API, retry transient failures, and resume from a saved checkpoint.
@@ -176,7 +189,7 @@ Fetch paginated event data from an API, retry transient failures, and resume fro
 
 ---
 
-### 13) Time & Retries
+### 14) Time & Retries
 
 **Path:** `time-and-retries/main.go`  
 Exponential backoff retry mechanism with ±25% jitter.
@@ -185,7 +198,7 @@ Exponential backoff retry mechanism with ±25% jitter.
 
 ---
 
-### 14) Time & Retries with Context
+### 15) Time & Retries with Context
 
 **Path:** `time-and-retries-with-context/main.go`  
 Same as above, but **context-aware** for graceful timeout/cancel handling.
@@ -194,7 +207,7 @@ Same as above, but **context-aware** for graceful timeout/cancel handling.
 
 ---
 
-### 15) String Manipulation — Email/Phone Normalization & Validation
+### 16) String Manipulation — Email/Phone Normalization & Validation
 
 **Path:** `string-manipulation/main.go`  
 Normalize and validate user contact info, then emit cleaned users and summary stats.
