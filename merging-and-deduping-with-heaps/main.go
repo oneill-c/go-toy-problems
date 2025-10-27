@@ -6,23 +6,23 @@ import (
 )
 
 type User struct {
-	ID int
-	Name string
+	ID    int
+	Name  string
 	Score int
 }
 
 type MergeItem struct {
-	User User
+	User   User
 	ListID int
-	Index int
+	Index  int
 }
 
 type MergeHeap []MergeItem
 
-func (h MergeHeap) Len() int { return len(h) }
+func (h MergeHeap) Len() int           { return len(h) }
 func (h MergeHeap) Less(i, j int) bool { return h[i].User.Score > h[j].User.Score }
-func (h MergeHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
-func (h *MergeHeap) Push(x any) { *h = append(*h, x.(MergeItem))}
+func (h MergeHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *MergeHeap) Push(x any)        { *h = append(*h, x.(MergeItem)) }
 func (h *MergeHeap) Pop() any {
 	old := *h
 	n := len(old)
@@ -34,7 +34,7 @@ func (h *MergeHeap) Pop() any {
 func MergAndDedupTopK(sources [][]User, k int) []User {
 	h := &MergeHeap{}
 	heap.Init(h)
-	
+
 	// seed heap with the first element from each list
 	for i, list := range sources {
 		if len(list) > 0 {
@@ -56,7 +56,7 @@ func MergAndDedupTopK(sources [][]User, k int) []User {
 			result = append(result, u)
 		}
 
-		// Push 
+		// Push
 		nextIdx := item.Index + 1
 		if nextIdx < len(sources[item.ListID]) {
 			nextUser := sources[item.ListID][nextIdx]
@@ -64,13 +64,13 @@ func MergAndDedupTopK(sources [][]User, k int) []User {
 		}
 	}
 	return result
- }
+}
 
 func main() {
-	listA := []User{{1,"A",90},{2,"B",85},{3,"C",80}}
-	listB := []User{{3,"C",95},{4,"D",88},{7,"G",75}}
-	listC := []User{{6,"F",99},{2,"B",83},{7,"G",75}}
-	merged := MergAndDedupTopK([][]User{listA, listB,listC}, 5)
+	listA := []User{{1, "A", 90}, {2, "B", 85}, {3, "C", 80}}
+	listB := []User{{3, "C", 95}, {4, "D", 88}, {7, "G", 75}}
+	listC := []User{{6, "F", 99}, {2, "B", 83}, {7, "G", 75}}
+	merged := MergAndDedupTopK([][]User{listA, listB, listC}, 5)
 	fmt.Println("Top 5 merged and deduped:")
 	for _, u := range merged {
 		fmt.Printf("%s (%d)\n", u.Name, u.Score)
